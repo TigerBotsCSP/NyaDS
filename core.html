@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>nyads</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@500;700&display=swap');
+
+        * {
+            font-family: 'Spline Sans Mono';
+            box-shadow: none !important;
+        }
+
+        button,
+        #data div {
+            border: none;
+            border-radius: 3px;
+            width: 100px;
+            height: 25px;
+            background-color: #0097b5;
+            border-radius: 7px;
+            color: #fff;
+            margin-bottom: 0.18in;
+            cursor: pointer;
+            transition: cubic-bezier(0.19, 1, 0.22, 1) 0.4s;
+            line-height: 25px;
+        }
+
+        #data div {
+            display: inline-block;
+            margin-bottom: 0px;
+            cursor: initial;
+        }
+
+        .toast-top-center {
+            margin-top: 15px;
+        }
+
+        button:hover {
+            filter: brightness(80%);
+        }
+    </style>
+</head>
+
+<body
+    style="background-color: black; color: white; display: flex; align-items: center; justify-content: center; height: 100vh;">
+    <div style="text-align: center;">
+        <h1>NyaDS</h1>
+        <div id="data">
+            <h2>Data</h2>
+            <div style="background-color: #e8f0cb; color: black;"><i class="fas fa-battery"></i> 12.77V</div>
+            <div style="background-color: #d4f5d8; color: black;"><i class="fas fa-wifi"></i> Good</div>
+            <div style="background-color: #f8d9d4; color: black;"><i class="fas fa-clock"></i> 0:00.00</div>
+        </div>
+        <div id="modes">
+            <h2>Modes</h2>
+            <button id="mode-off" onclick="ds.set_mode('off')" style="background-color: #ba1004; filter: brightness(80%)"><i class="fas fa-ban"></i> Off</button>
+            <button id="mode-teleop" onclick="ds.set_mode('teleop')" style="background-color: #2bba04;"><i class="fas fa-gamepad"></i> Teleop</button>
+            <button id="mode-auto" onclick="ds.set_mode('auto')" style="background-color: #049cba;"><i class="fas fa-robot"></i> Auto</button>
+        </div>
+        <div id="auto">
+            <h2>Pathways</h2>
+            <button style="background-color: #bb1090;"><i class="fas fa-add"></i> Create</button>
+            <button style="background-color: #e48201;"><i class="fas fa-vial"></i> Test</button>
+        </div>
+    </div>
+    <script>
+        var ds = {
+            vars: {
+                mode: "off",
+                alliance: "red"
+            },
+
+            set_mode: function (mode) {
+                document.querySelector(`#mode-${this.vars.mode}`).style.filter = "brightness(100%)";
+                document.querySelector(`#mode-${mode}`).style.filter = "brightness(80%)"
+                
+                this.vars.mode = mode;
+            }
+        }
+
+        function updateLoop() {
+            window.chrome.webview.postMessage(JSON.stringify({
+                event: "update",
+                data: ds.vars
+            }));
+            requestAnimationFrame(updateLoop);
+        }
+
+        requestAnimationFrame(updateLoop);
+    </script>
+</body>
+
+</html>

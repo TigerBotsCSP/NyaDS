@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>nyads</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Spline+Sans+Mono:wght@500;700&display=swap');
+
+        :root {
+            --Drive: #b60000;
+            --Rotate: #6105d8;
+            --Delay: #be6600;
+            --Length: #039797;
+            --Intaker: #27cf40;
+            --Balance: #be0655;
+        }
+
+        * {
+            font-family: 'Spline Sans Mono';
+            box-shadow: none !important;
+        }
+
+        button,
+        #data div {
+            border: none;
+            border-radius: 3px;
+            width: 110px;
+            height: 35px;
+            background-color: #0097b5;
+            border-radius: 7px;
+            color: #fff;
+            margin-bottom: 0.18in;
+            cursor: pointer;
+            transition: cubic-bezier(0.19, 1, 0.22, 1) 0.4s;
+            line-height: 25px;
+        }
+
+        #data div {
+            display: inline-block;
+            margin-bottom: 0px;
+            cursor: initial;
+        }
+
+        .toast-top-center {
+            margin-top: 15px;
+        }
+
+        button:hover {
+            filter: brightness(80%);
+        }
+
+        #schedule {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .command {
+            height: 40px;
+            width: 80%;
+            background-color: #b90000;
+            border-radius: 15px;
+            display: flex;
+            align-items: center;
+            padding: 0px 13px 0px 13px;
+            font-size: 17px;
+            margin-bottom: 13px;
+        }
+
+        .command div {
+            margin-left: 15px;
+            padding: 2px;
+            width: 60px;
+            border-radius: 50px;
+            border: 1px solid rgb(0, 0, 0);
+            font-size: 13px;
+            background-color: black;
+        }
+
+        .command div[id="time"] {
+            width: 70px;
+            margin-left: 10px;
+            margin-left: 15px;
+            padding: 2px;
+            border-radius: 50px;
+            border: 1px solid rgb(0, 0, 0);
+            font-size: 13px;
+            background-color: black;
+            color: white;
+        }
+
+        .command .delete {
+            margin-left: auto;
+            color: black;
+            cursor: pointer;
+        }
+
+        #pathwayCreate button {
+            margin-top: 10px;
+        }
+
+        input {
+            border: 1pt solid #979797;
+            border-radius: 5px;
+            width: 50px;
+            height: 15px;
+        }
+    </style>
+</head>
+
+<body
+    style="background-color: black; color: white; display: flex; align-items: center; justify-content: center; height: 100vh;">
+    <div style="text-align: center;">
+        <h1><i class="fas fa-x" style="color: red;"></i> NyaDS</h1>
+        <div id="pathwayCreate">
+            <h2>Pathways Create</h2>
+            <h4>Use the inputs to declare your desired values.<br>Once done, add a command using the buttons below.</h4>
+            <button id="mode-off" onclick="auto.add('Drive')" style="background-color: #b10000;"><i
+                    class="fas fa-car"></i> Drive</button>
+            <button id="mode-teleop" onclick="auto.add('Rotate')" style="background-color: #7611fa;"><i
+                    class="fas fa-rotate"></i> Rotate</button>
+            <button id="mode-auto" onclick="auto.add('Length')" style="background-color: #039797;"><i
+                    class="fas fa-arrow-up"></i> Length</button>
+            <br>
+            <button id="mode-auto" onclick="auto.add('Delay')" style="background-color: #db7705;"><i
+                    class="fas fa-clock"></i> Delay</button>
+            <button id="mode-auto" onclick="auto.add('Intaker', true)" style="background-color: #27cf40;"><i
+                    class="fas fa-clock"></i> Intaker</button>
+            <button id="mode-auto" onclick="auto.add('Balance', true)" style="background-color: #be0655;"><i
+                    class="fas fa-balance-scale"></i> Balance</button>
+            <br>
+            <label>Speed:</label>
+            <input type="text" id="cSpeed">
+            <label>Time:</label>
+            <input type="text" id="cTime"><br>
+            <h2>Schedule</h2>
+            <div id="schedule">
+            </div>
+            <button id="exec-path" onclick="auto.do()"
+                style="background-color: #dbdbdb; color: black; cursor: pointer;"><i class="fas fa-wrench"></i>
+                Execute</button>
+            <button id="rev-path" onclick="auto.reverse()"
+                style="background-color: #dbdbdb; color: black; cursor: pointer;"><i class="fas fa-rotate"></i>
+                Reverse</button>
+            <button id="rev-path" onclick="auto.save()"
+                style="background-color: #dbdbdb; color: black; cursor: pointer;"><i class="fas fa-save"></i>
+                Save</button>
+        </div>
+    </div>
+    <script>
+        var auto = {
+            schedule: [
+            ],
+
+            add: function (type, single) {
+                var data = {
+                    id: Math.random().toString(32).slice(9),
+                    type: type,
+                    time: Number(document.querySelector("#cTime").value) || 1,
+                    speed: Number(document.querySelector("#cSpeed").value) || 1
+                }
+
+                auto.schedule.push(data);
+
+                if (single) {
+                    // The time and speed values don't really need to be cleared for single commands. Robot code will just ignore them
+                    document.querySelector("#schedule").innerHTML += `
+                <div id="c-${data.id}" class="command" style="background-color: var(--${type});"><i class="fas fa-location"></i>  ${type}
+                    <i class="fas fa-minus delete" onclick="auto.del('${data.id}')"></i>
+                </div>
+                `
+                } else {
+                    document.querySelector("#schedule").innerHTML += `
+                <div id="c-${data.id}" class="command" style="background-color: var(--${type});"><i class="fas fa-location"></i>  ${type}
+                    <div id="speed"><i class="fas fa-gauge"></i> ${data.speed}</div>
+                    <div id="time"><i class="fas fa-clock"></i> ${data.time}</div>
+                    <i class="fas fa-minus delete" onclick="auto.del('${data.id}')"></i>
+                </div>
+                `
+                }
+            },
+
+            del: function (id) {
+                console.log(id);
+                auto.schedule = auto.schedule.filter(item => item.id != id);
+                document.querySelector("#c-" + id).remove();
+            },
+
+            save: function () {
+                window.socket.send(JSON.stringify({
+                    event: "auto_save",
+                    data: auto.schedule
+                }));
+            },
+
+            do: function () {
+                window.socket.send(JSON.stringify({
+                    event: "auto_execute",
+                    data: auto.schedule
+                }));
+            },
+
+            reverse: function () {
+                window.socket.send(JSON.stringify({
+                    event: "auto_reverse",
+                    data: auto.schedule
+                }));
+            }
+        }
+
+        window.chrome.webview.addEventListener("message", function (event) {
+            if (!event.data.data) return;
+
+            if (!event.data.data.success) {
+                toastr["error"]("Couldn't save path, is the robot still up and connected?", "Error");
+            } else {
+                toastr["success"](event.data.data.message, "Saved");
+            }
+        });
+
+        window.addEventListener("beforeunload", function (event) {
+            // Close the WebSocket connection
+            window.socket.close();
+        });
+
+    </script>
+</body>
+
+</html>

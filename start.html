@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <title>nyads</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@600;800&family=Spline+Sans+Mono:wght@500;700&display=swap"
+        rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet"
+        type="text/css" />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+    <style>
+        * {
+            font-family: 'Spline Sans Mono';
+            box-shadow: none !important;
+            overflow: hidden;
+        }
+
+        input {
+            border: 1pt solid #10a3c0;
+            border-radius: 5px;
+            width: 120px;
+            height: 20px;
+        }
+
+        select {
+            border-radius: 5px;
+            border: 1pt solid #10a3c0;
+        }
+
+        #start-btn {
+            border: none;
+            border-radius: 3px;
+            width: 120px;
+            height: 25px;
+            background-color: #0097b5;
+            border-radius: 7px;
+            color: #fff;
+            margin-bottom: 0.18in;
+            cursor: pointer;
+            transition: cubic-bezier(0.19, 1, 0.22, 1) 0.4s;
+        }
+
+        button:hover {
+            background-color: #04697d;
+        }
+
+        .toast-top-center {
+            margin-top: 15px;
+        }
+    </style>
+</head>
+
+<body
+    style="font-family: 'Spline Sans Mono'; background-color: black; color: white; display: flex; align-items: center; justify-content: center; height: 100vh;">
+    <div style="text-align: center;">
+        <h1>NyaDS</h1>
+        <form id="fms-form">
+            <label for="ip">IP Address:</label>
+            <input type="text" id="ip" name="ip" placeholder="10.90.72.2" value="10.90.72.2"><br><br>
+            <label for="alliance">Alliance:</label>
+            <select id="alliance" name="alliance">
+                <option value="red">Red</option>
+                <option value="blue">Blue</option>
+            </select><br><br>
+            <button type="button" id="start-btn">Start</button>
+        </form>
+    </div>
+    <script>
+        const fmsForm = document.getElementById('fms-form');
+        const startBtn = document.getElementById('start-btn');
+
+        // Setup popup options
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": false,
+            "progressBar": false,
+            "positionClass": "toast-top-center",
+            "preventDuplicates": false,
+            "onclick": null,
+            "showDuration": "300",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        }
+
+        startBtn.addEventListener('click', () => {
+            const ip = document.getElementById('ip').value;
+            const alliance = document.getElementById('alliance').value;
+
+            window.chrome.webview.postMessage(JSON.stringify({
+                event: "connect",
+                data: { address: ip, port: 1110, alliance: alliance }
+            }));
+        });
+
+        window.chrome.webview.addEventListener("message", function (event) {
+            if (event.data && !event.data.data.success) {
+                toastr["error"]("Connection failed, is the address of the robot correct?", "Error");
+            }
+        });
+    </script>
+</body>
+
+</html>
